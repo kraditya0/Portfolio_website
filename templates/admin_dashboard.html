@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Aditya Portfolio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; }
+        .admin-sidebar {
+            background: rgba(20, 30, 48, 0.95);
+            border-right: 1px solid rgba(13, 110, 253, 0.15);
+            min-height: 100vh;
+            position: fixed;
+            width: 260px;
+            padding-top: 1rem;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .admin-main { margin-left: 260px; padding: 2rem; min-height: 100vh; }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #8899aa;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 2px 12px;
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+        .stat-card {
+            background: rgba(20, 30, 48, 0.8);
+            border: 1px solid rgba(13, 110, 253, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            border-color: rgba(13, 110, 253, 0.3);
+            transform: translateY(-2px);
+        }
+        .admin-card {
+            background: rgba(20, 30, 48, 0.8);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+        }
+        .table-dark { --bs-table-bg: transparent; }
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+        }
+        @media (max-width: 768px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.show { transform: translateX(0); }
+            .admin-main { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="px-3 mb-4">
+        <a href="{{ url_for('index') }}" class="text-decoration-none">
+            <h4 class="fw-bold mb-0">
+                <span class="text-primary">&lt;</span>Admin<span class="text-primary">/&gt;</span>
+            </h4>
+        </a>
+    </div>
+
+    <nav>
+        <a href="#overview" class="sidebar-link active">
+            <i class="bi bi-grid-1x2 fs-5"></i> Dashboard
+        </a>
+        <a href="#projects" class="sidebar-link">
+            <i class="bi bi-collection fs-5"></i> Projects
+        </a>
+        <a href="#services" class="sidebar-link">
+            <i class="bi bi-briefcase fs-5"></i> Services
+        </a>
+        <a href="#skills" class="sidebar-link">
+            <i class="bi bi-bar-chart fs-5"></i> Skills
+        </a>
+        <a href="#testimonials" class="sidebar-link">
+            <i class="bi bi-chat-heart fs-5"></i> Feedback
+            {% if testimonials %}{% set pending = testimonials|selectattr('approved', 'equalto', 0)|list %}{% if pending %}<span class="badge bg-warning text-dark ms-auto">{{ pending|length }}</span>{% endif %}{% endif %}
+        </a>
+        <a href="#messages" class="sidebar-link">
+            <i class="bi bi-envelope fs-5"></i> Messages
+            {% if messages %}<span class="badge bg-danger ms-auto">{{ messages|length }}</span>{% endif %}
+        </a>
+    </nav>
+
+    <div class="position-absolute bottom-0 w-100 p-3 border-top border-secondary">
+        <div class="d-flex align-items-center gap-2 mb-3 px-2">
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                <i class="bi bi-person-fill text-white"></i>
+            </div>
+            <div>
+                <small class="fw-semibold d-block">{{ session.get('admin_username', 'Admin') }}</small>
+                <small class="text-muted">Administrator</small>
+            </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+            <i class="bi bi-box-arrow-right me-1"></i>Logout
+        </a>
+    </div>
+</aside>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="admin-main">
+
+    <!-- Mobile Toggle -->
+    <button class="btn btn-primary d-md-none mb-3" onclick="document.getElementById('adminSidebar').classList.toggle('show')">
+        <i class="bi bi-list"></i> Menu
+    </button>
+
+    <!-- Flash Messages -->
+    {% with messages_flash = get_flashed_messages(with_categories=true) %}
+    {% if messages_flash %}
+    {% for category, message in messages_flash %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- ─── OVERVIEW ────────────────────────────────── -->
+    <section id="overview" class="mb-5">
+        <h3 class="fw-bold mb-4"><i class="bi bi-grid-1x2 me-2 text-primary"></i>Dashboard Overview</h3>
+        <div class="row g-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Projects</p>
+                            <h2 class="fw-bold mb-0">{{ projects|length }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                            <i class="bi bi-collection text-primary fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Services</p>
+                            <h2 class="fw-bold mb-0">{{ services|length }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                            <i class="bi bi-briefcase text-success fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Skills</p>
+                            <h2 class="fw-bold mb-0">{{ skills|length }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                            <i class="bi bi-bar-chart text-warning fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Messages</p>
+                            <h2 class="fw-bold mb-0">{{ messages|length }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                            <i class="bi bi-envelope text-info fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── PROJECTS MANAGEMENT ─────────────────────── -->
+    <section id="projects" class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold mb-0"><i class="bi bi-collection me-2 text-primary"></i>Projects</h3>
+            <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                <i class="bi bi-plus-lg me-1"></i>Add Project
+            </button>
+        </div>
+        <div class="admin-card p-4">
+            {% if projects %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th>Title</th>
+                            <th>Tech Stack</th>
+                            <th>Links</th>
+                            <th>Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td class="fw-semibold">{{ project.title }}</td>
+                            <td>
+                                {% for tech in project.tech_stack.split(',')[:3] %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ tech.strip() }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if project.github_link %}
+                                <a href="{{ project.github_link }}" target="_blank" class="text-muted me-2"><i class="bi bi-github"></i></a>
+                                {% endif %}
+                                {% if project.live_link %}
+                                <a href="{{ project.live_link }}" target="_blank" class="text-primary"><i class="bi bi-box-arrow-up-right"></i></a>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ project.created_at[:10] if project.created_at else 'N/A' }}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill me-1"
+                                        data-bs-toggle="modal" data-bs-target="#editProjectModal{{ project.id }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="{{ url_for('admin_delete_project', id=project.id) }}"
+                                   class="btn btn-sm btn-outline-danger rounded-pill"
+                                   onclick="return confirm('Delete this project?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                        <!-- Edit Project Modal -->
+                        <div class="modal fade" id="editProjectModal{{ project.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content bg-dark border-secondary">
+                                    <div class="modal-header border-secondary">
+                                        <h5 class="modal-title fw-bold">Edit Project</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin_edit_project', id=project.id) }}" method="POST">
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Title</label>
+                                                <input type="text" class="form-control bg-dark border-secondary text-light" name="title" value="{{ project.title }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control bg-dark border-secondary text-light" name="description" rows="3" required>{{ project.description }}</textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Tech Stack (comma-separated)</label>
+                                                <input type="text" class="form-control bg-dark border-secondary text-light" name="tech_stack" value="{{ project.tech_stack }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">GitHub Link</label>
+                                                <input type="url" class="form-control bg-dark border-secondary text-light" name="github_link" value="{{ project.github_link }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Live Demo Link</label>
+                                                <input type="url" class="form-control bg-dark border-secondary text-light" name="live_link" value="{{ project.live_link }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Image URL</label>
+                                                <input type="text" class="form-control bg-dark border-secondary text-light" name="image" value="{{ project.image }}">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-secondary">
+                                            <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary rounded-pill">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4 mb-0">No projects yet. Click "Add Project" to get started.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Add Project Modal -->
+    <div class="modal fade" id="addProjectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Add Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('admin_add_project') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Title *</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description *</label>
+                            <textarea class="form-control bg-dark border-secondary text-light" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tech Stack * (comma-separated)</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" name="tech_stack" placeholder="Flask, Python, SQLite" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">GitHub Link</label>
+                            <input type="url" class="form-control bg-dark border-secondary text-light" name="github_link" placeholder="https://github.com/...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Live Demo Link</label>
+                            <input type="url" class="form-control bg-dark border-secondary text-light" name="live_link" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Image URL</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" name="image" placeholder="https://...">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill">Add Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SERVICES MANAGEMENT ─────────────────────── -->
+    <section id="services" class="mb-5">
+        <h3 class="fw-bold mb-4"><i class="bi bi-briefcase me-2 text-primary"></i>Service Packages</h3>
+        <p class="text-muted small mb-4">These are the 2 service packages shown on the main page. To edit content, update the <code>index.html</code> template directly.</p>
+        <div class="row g-4">
+            <!-- Basic Website Preview -->
+            <div class="col-md-6">
+                <div class="admin-card p-4 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2">
+                            <i class="bi bi-globe text-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Basic Website</h5>
+                            <small class="text-primary fw-semibold">Rs. 15k – Rs. 20k</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">Perfect for businesses that want customers to call or email directly. Ideal for generating leads through quick contact.</p>
+                    <ul class="text-muted small ps-3 mb-0">
+                        <li>Up to 5 pages</li>
+                        <li>3 revisions after live</li>
+                        <li>Free 1st year hosting (Rs.2000)</li>
+                        <li>Free SSL certificate</li>
+                        <li>2 professional mailboxes (1 year)</li>
+                        <li>Mobile responsive + SEO basic</li>
+                        <li>Contact form integration</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- E-Commerce Website Preview -->
+            <div class="col-md-6">
+                <div class="admin-card p-4 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2">
+                            <i class="bi bi-cart4 text-success fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">E-Commerce Website</h5>
+                            <small class="text-success fw-semibold">Rs. 35k – Rs. 50k</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">Perfect for businesses that want to sell directly from their website. Ideal for turning visitors into instant buyers.</p>
+                    <ul class="text-muted small ps-3 mb-0">
+                        <li>Up to 20 pages + 50 listings</li>
+                        <li>6 revisions after live</li>
+                        <li>Free 1st year hosting (Rs.3000)</li>
+                        <li>Free SSL certificate</li>
+                        <li>6 professional mailboxes (1 year)</li>
+                        <li>Payment gateway + Admin dashboard</li>
+                        <li>Mobile responsive + SEO advanced</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── SKILLS MANAGEMENT ──────────────────────── -->
+    <section id="skills" class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2 text-primary"></i>Skills</h3>
+            <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#addSkillModal">
+                <i class="bi bi-plus-lg me-1"></i>Add Skill
+            </button>
+        </div>
+        <div class="admin-card p-4">
+            {% if skills %}
+            <div class="row g-3">
+                {% for skill in skills %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-3 rounded-3" style="background:rgba(13,110,253,0.05);">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold">{{ skill.name }}</span>
+                            <span class="text-primary fw-bold">{{ skill.percentage }}%</span>
+                        </div>
+                        <div class="progress" style="height:6px;">
+                            <div class="progress-bar bg-primary" style="width:{{ skill.percentage }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4 mb-0">No skills yet. Click "Add Skill" to get started.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Add Skill Modal -->
+    <div class="modal fade" id="addSkillModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Add Skill</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('admin_add_skill') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Skill Name *</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light" name="name" placeholder="Python" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Percentage * (0-100)</label>
+                            <input type="number" class="form-control bg-dark border-secondary text-light" name="percentage" min="0" max="100" placeholder="90" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select bg-dark border-secondary text-light" name="category">
+                                <option value="Technical">Technical</option>
+                                <option value="Frontend">Frontend</option>
+                                <option value="Backend">Backend</option>
+                                <option value="Tools">Tools</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill">Add Skill</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── TESTIMONIALS MANAGEMENT ───────────────── -->
+    <section id="testimonials" class="mb-5">
+        <h3 class="fw-bold mb-4"><i class="bi bi-chat-heart me-2 text-primary"></i>Client Feedback</h3>
+        <div class="admin-card p-4">
+            {% if testimonials %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Rating</th>
+                            <th>Feedback</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in testimonials %}
+                        <tr>
+                            <td class="fw-semibold">{{ t.name }}</td>
+                            <td class="text-muted small">{{ t.role or '—' }}</td>
+                            <td>
+                                {% for i in range(t.rating) %}<i class="bi bi-star-fill text-warning small"></i>{% endfor %}
+                            </td>
+                            <td class="text-muted small" style="max-width:250px;">{{ t.feedback[:80] }}{% if t.feedback|length > 80 %}...{% endif %}</td>
+                            <td>
+                                {% if t.approved %}
+                                <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ t.created_at[:10] if t.created_at else 'N/A' }}</td>
+                            <td class="text-end">
+                                {% if not t.approved %}
+                                <a href="{{ url_for('admin_approve_testimonial', id=t.id) }}"
+                                   class="btn btn-sm btn-outline-success rounded-pill me-1" title="Approve">
+                                    <i class="bi bi-check-lg"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('admin_delete_testimonial', id=t.id) }}"
+                                   class="btn btn-sm btn-outline-danger rounded-pill"
+                                   onclick="return confirm('Delete this feedback?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4 mb-0">No client feedback yet.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- ─── MESSAGES ────────────────────────────────── -->
+    <section id="messages" class="mb-5">
+        <h3 class="fw-bold mb-4"><i class="bi bi-envelope me-2 text-primary"></i>Messages</h3>
+        <div class="admin-card p-4">
+            {% if messages %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Message</th>
+                            <th>Date</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for msg in messages %}
+                        <tr>
+                            <td class="fw-semibold">{{ msg.name }}</td>
+                            <td><a href="mailto:{{ msg.email }}" class="text-primary">{{ msg.email }}</a></td>
+                            <td class="text-muted small" style="max-width:300px;">{{ msg.message[:80] }}{% if msg.message|length > 80 %}...{% endif %}</td>
+                            <td class="text-muted small">{{ msg.created_at[:16] if msg.created_at else 'N/A' }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('admin_delete_message', id=msg.id) }}"
+                                   class="btn btn-sm btn-outline-danger rounded-pill"
+                                   onclick="return confirm('Delete this message?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4 mb-0">No messages yet.</p>
+            {% endif %}
+        </div>
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar active link
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', function() {
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+</body>
+</html>
