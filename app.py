@@ -1,7 +1,12 @@
 import os
+import sys
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+# Ensure imports work on Vercel
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from models import (
     init_db, get_all_projects, get_all_services,
