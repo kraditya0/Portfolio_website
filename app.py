@@ -26,12 +26,16 @@ EMAIL_ADDRESS = 'aditya2003iitm@gmail.com'
 EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', '')
 
 # ─── Initialize & seed DB on startup ───────────────────────
-with app.app_context():
-    try:
-        init_db()
-        seed()
-    except Exception as e:
-        print(f"[DB INIT ERROR] {e}")
+print("[STARTUP] Initializing database...")
+try:
+    init_db()
+    print("[STARTUP] Database initialized successfully.")
+    seed()
+    print("[STARTUP] Database seeded successfully.")
+except Exception as e:
+    import traceback
+    print(f"[DB INIT ERROR] {e}")
+    traceback.print_exc()
 
 
 # ─── Email Helper ───────────────────────────────────────────

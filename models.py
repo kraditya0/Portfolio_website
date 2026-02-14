@@ -2,7 +2,11 @@ import sqlite3
 import os
 from datetime import datetime
 
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+# Use /tmp on Render (ephemeral but writable), local path for development
+if os.environ.get('RENDER'):
+    DATABASE = '/tmp/database.db'
+else:
+    DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
 
 
 def get_db():
