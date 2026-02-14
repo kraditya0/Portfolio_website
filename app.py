@@ -14,7 +14,7 @@ from models import (
 from seed_db import seed
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-in-production-aditya-2026'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # ─── Email Configuration ───────────────────────────────────
 # To use Gmail SMTP, generate an App Password:
@@ -22,7 +22,7 @@ app.secret_key = 'your-secret-key-change-in-production-aditya-2026'
 # 2. Create an app password for "Mail"
 # 3. Paste it below (16-char code, no spaces)
 EMAIL_ADDRESS = 'aditya2003iitm@gmail.com'
-EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', 'glekpgyaghqhjirt')
+EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', '')
 
 # ─── Initialize & seed DB on startup ───────────────────────
 with app.app_context():
