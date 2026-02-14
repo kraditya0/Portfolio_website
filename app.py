@@ -24,8 +24,11 @@ EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', 'glekpgyaghqhjirt')
 # On Vercel, /tmp is ephemeral so DB must be recreated each cold start
 
 with app.app_context():
-    init_db()
-    seed()
+    try:
+        init_db()
+        seed()
+    except Exception as e:
+        print(f"[DB INIT ERROR] {e}")
 
 
 # ─── Email Helper ───────────────────────────────────────────
