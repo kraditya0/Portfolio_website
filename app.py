@@ -7,6 +7,7 @@ from models import (
     init_db, get_all_projects, get_all_services,
     get_all_skills, get_approved_testimonials
 )
+from seed_db import seed
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-in-production-aditya-2026'
@@ -19,10 +20,12 @@ app.secret_key = 'your-secret-key-change-in-production-aditya-2026'
 EMAIL_ADDRESS = 'aditya2003iitm@gmail.com'
 EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', 'glekpgyaghqhjirt')
 
-# ─── Initialize DB on startup ──────────────────────────────
+# ─── Initialize & seed DB on startup ───────────────────────
+# On Vercel, /tmp is ephemeral so DB must be recreated each cold start
 
 with app.app_context():
     init_db()
+    seed()
 
 
 # ─── Email Helper ───────────────────────────────────────────

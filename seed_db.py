@@ -14,8 +14,7 @@ from models import (
 )
 
 def seed():
-    print("Initializing database...")
-    init_db()
+    """Seed the database with sample data if tables are empty."""
 
     # ─── Seed Services ──────────────────────────────────────
     if not get_all_services():
