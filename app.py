@@ -1,6 +1,7 @@
 import os
 import sys
 import smtplib
+import threading
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -100,7 +101,9 @@ def contact():
         <p style="color:#888;font-size:12px;">Sent from your portfolio website</p>
     </div>
     """
-    send_email(subject, body)
+    # Send email in background thread to avoid timeout
+    thread = threading.Thread(target=send_email, args=(subject, body))
+    thread.start()
 
     flash('Message sent successfully! I\'ll get back to you soon.', 'success')
     return redirect(url_for('index') + '#contact')
