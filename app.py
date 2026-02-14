@@ -4,7 +4,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# Ensure imports work on Vercel
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
@@ -26,8 +25,6 @@ EMAIL_ADDRESS = 'aditya2003iitm@gmail.com'
 EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', 'glekpgyaghqhjirt')
 
 # ─── Initialize & seed DB on startup ───────────────────────
-# On Vercel, /tmp is ephemeral so DB must be recreated each cold start
-
 with app.app_context():
     try:
         init_db()

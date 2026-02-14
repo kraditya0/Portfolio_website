@@ -2,11 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 
-# Use /tmp on Vercel (read-only filesystem), local path otherwise
-if os.environ.get('VERCEL'):
-    DATABASE = '/tmp/database.db'
-else:
-    DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
 
 
 def get_db():
